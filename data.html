@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-个人资料</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/data.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      headerContent('data')
+
+      isLogin(token => {
+        request({
+          service: 'user/userinfo',
+          args: { token },
+          onSuc: res => {
+            $('.flex-auto').prepend(`
+            <div class='info f-17 bold'>
+              <div class='f-20'>${res.name}</div>
+              <div>ID：${res.uuid}</div>
+            </div>
+            `)
+          }
+        })
+      })
+
+      // 退出登录
+      $('.button').click(function () {
+        STORAGE.removeItem('token')
+        showMsg('退出成功！', 'login.html')
+      })
+    })
+  </script>
+</head>
+<body class='page data-page'>
+<div class='flex-auto c-f'>
+  <img src='image/bg-2.png' alt='' class='block-img'>
+  
+  <div class='item-box'>
+    <!--    <div class='item flex-r'>-->
+    <!--      <div class='flex'>实名认证</div>-->
+    <!--      <a class='item-color' href='certification.html'>未认证</a>-->
+    <!--    </div>-->
+    
+    <div class='item flex-r'>
+      <div class='flex'>收款方式</div>
+      <a class='item-color' href='bank.html'>设置</a>
+    </div>
+    
+    <div class='item flex-r'>
+      <div class='flex'>修改登录密码</div>
+      <a class='item-color' href='register.html?type=1&edit=1'>修改</a>
+    </div>
+    
+    <div class='item flex-r'>
+      <div class='flex'>修改安全密码</div>
+      <a class='item-color' href='register.html?type=2&edit=1'>修改</a>
+    </div>
+    
+    <div class='item flex-r'>
+      <div class='flex'>设置收货地址</div>
+      <a class='item-color' href='address.html'>管理</a>
+    </div>
+  </div>
+  
+  <div class='button'>退出登录</div>
+</div>
+</body>
+</html>

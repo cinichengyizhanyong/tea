@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-我的订单</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/order.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script src='js/consts.js'></script>
+  <script>
+    $(function () {
+      headerContent('order')
+
+      isLogin(token => {
+        const args = {
+          token,
+          type: 1
+        }
+
+        const titleBg = {
+          10: 'bg-green',
+          20: 'bg-progress',
+          30: 'bg-success',
+          40: 'bg-success',
+          50: 'bg-fail',
+          60: 'bg-fail'
+        }
+
+        // 分页
+        const { resetPage } = paging({
+          service: 'crowdfundingareaBefore/MyOrder',
+          args,
+          normalizer: res => res.list,
+          onSuc: (list, res) => {
+            const count = $('.count')
+
+            if (!count.html()) {
+              count.html(`
+              <div class='count-cover pos-a pos-full'></div>
+              <div class='flex-r f-16'>
+                <div class='flex'>${res.participateIn}</div>
+                <div class='flex'>${res.EarnedMoney}</div>
+                <div class='flex'>${res.YesterdaysEarnings}</div>
+              </div>
+              <div class='flex-r f-15'>
+                <div class='flex'>参与中</div>
+                <div class='flex'>已赚取</div>
+                <div class='flex'>昨日收益</div>
+              </div>
+              `)
+            }
+
+            list.forEach(item => {
+              const { Stautes, Collect_money } = item
+              const { centerHtml, bottomHtml } = getHtml(item)
+
+              $('.js-paging').append(`
+              <div class='order'>
+                <div class='title flex-r ${titleBg[Stautes]}'>
+                  <div class='flex mr-5 text-line1'>${item.name}</div>
+                  ${STATUS[Stautes]}
+                </div>
+                
+                <div class='data ${Stautes < 30 ? 'data-ing' : ''} text-center'>
+                  <div class='flex-r'>
+                    <div class='flex f-16 bold'>${Collect_money}</div>
+                    <div class='flex'>${formatTime(item.Appointmentendtime, 'sfm')}</div>
+                  </div>
+                  
+                  <div class='flex-r'>
+                    <div class='flex'>筹集金额</div>
+                    <div class='flex'>结束时间</div>
+                  </div>
+                  
+                  ${centerHtml}
+                </div>
+                
+                ${bottomHtml}
+              </div>`)
+            })
+          }
+        })
+
+        // 导航切换
+        changeNav(type => {
+          args.type = type
+          $('.js-paging').html('')
+          resetPage()
+        })
+      })
+    })
+
+    const getHtml = item => {
+      let centerHtml = ''
+      let bottomHtml = ''
+
+      const { Stautes, Collect_money, Raised_money, Money } = item
+      const progress = `${parseInt(Raised_money / Collect_money)}%`
+
+      const joinNum = `<div class='bold'>已参与人数：${item.NumberofParticipants}人</div>`
+
+      if (Stautes === 10) {
+        const { day, hours, minutes, seconds } = timeSpace(item.Appointmentendtime)
+
+        centerHtml = `<div class='book-ing bg-green c-f'>
+            <span class='f-20 vertical-align-t bold'>
+              剩余：
+            </span>
+          ${numLen(day * 24 + hours)}:${numLen(minutes)}:${numLen(seconds)}
+        </div>
+        
+        ${joinNum}`
+
+        bottomHtml = `<div class='flex-c-c text-center c-f'>
+          <div class='book-mr'>我预约了</div>
+          <div class='f-18 bold'>${Money}</div>
+        </div>`
+      } else if (Stautes === 20) {
+        centerHtml = `
+        <div class='progress-box flex-r'>
+          <div class='flex progress-border'>
+            <div class='progress' style='width: ${progress};'></div>
+          </div>
+          ${progress}
+        </div>
+        
+        <div class='bold'>已完成筹集：${Raised_money}</div>
+        ${joinNum}`
+      }
+
+      if (Stautes > 10 && Stautes < 50) {
+        bottomHtml = `<div class='text-center c-f'>
+          <div class='flex-r f-15 bold'>
+            <div class='flex'>${Money}</div>
+            <div class='flex'>${(Money * item.DividendRatio).toFixed(2)}</div>
+          </div>
+          <div class='flex-r'>
+            <div class='flex'>我买入了</div>
+            <div class='flex'>${Stautes === 40 ? '我赚取了' : '预计收益'}</div>
+          </div>
+        </div>`
+      }
+
+      if (Stautes > 40) {
+        bottomHtml = `<div class='flex-r text-center c-f'>
+        <div class='flex'>
+          <div>我买入了</div>
+          <div>${Money}</div>
+        </div>
+        <div class='flex'>${STATUS[Stautes]}</div>
+      </div>`
+      }
+
+      return {
+        centerHtml,
+        bottomHtml
+      }
+    }
+  </script>
+</head>
+<body class='page order-page'>
+<div class='flex-auto box-set p-15'>
+  <div class='page-content'>
+    <div class='count pos-r text-center c-f'></div>
+    
+    <div class='nav-bar flex-r'>
+      <div class='flex nav-selected' data-type='1'>进行中</div>
+      <div class='flex' data-type='2'>已完成</div>
+      <div class='flex' data-type='3'>已失败</div>
+    </div>
+    
+    <div class='js-paging'></div>
+  </div>
+</div>
+</body>
+</html>

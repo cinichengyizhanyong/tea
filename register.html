@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-注册</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/register.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script>
+    $(function () {
+      // 忘记密码内容
+      const urlRoot = getUrlArg('root_uuid')
+      const apkUrl = getUrlArg('apkUrl')
+      const isForgetPage = getUrlArg('type')
+      const isEdit = getUrlArg('edit') === '1'
+      const isForgetPwd = isForgetPage === '1'
+
+      if (isForgetPage) {
+        const text = `${isEdit ? '修改' : '忘记'}密码`
+        $('title').text(`茶叶众筹-${text}`)
+        $('.step-1 .title').text(text)
+        $('.forget-hide').remove()
+
+        $(`.${isForgetPwd ? 'js-pay-pwd' : 'js-login-pwd'}`).remove()
+      }
+
+      if (urlRoot) {
+        $('.invitation').val(urlRoot)
+      }
+
+      // 注册、忘记密码
+      $('.step-1 .button').click(function () {
+        const tel = $('.tel').val()
+        const invitation = $('.invitation').val()
+
+        if (!TEL_REG.test(tel)) {
+          showMsg(TEL_ERR)
+          return
+        }
+
+        if (!isForgetPage && !invitation) {
+          showMsg('请输入邀请码！')
+          return
+        }
+
+        // 验证码
+        $('.step-1').hide()
+        $('.step-2').show()
+        getSmsCode(tel)
+        inputSmsCode(function () {
+          $('.step-2').hide()
+          $('.step-3').show()
+        })
+      })
+
+      // 设置密码
+      $('.step-3 .button').click(function () {
+        const phone = $('.tel').val()
+        const code = $('.sms-code-input').val()
+        const pwd = $('.pwd').val()
+        const safePwd = $('.safe-pwd').val()
+        const reg = /((?=.*\d)(?=.*\D)|(?=.*[a-zA-Z])(?=.*[^a-zA-Z]))^.{8,16}$/
+        const tip = '密码长度8-32位，必须包含数字、字母、符号至少2种或以上元素！'
+
+        if ((isForgetPage ? isForgetPwd : true) && !reg.test(pwd)) {
+          showMsg(`登录${tip}`)
+          return
+        }
+
+        if ((isForgetPage ? !isForgetPwd : true) && !reg.test(safePwd)) {
+          showMsg(`安全${tip}`)
+          return
+        }
+
+        request({
+          service: isForgetPage ? 'user/resetPassword' : 'user/xregist',
+          args: isForgetPage ? {
+            phone,
+            code,
+            pwd: isForgetPwd ? pwd : safePwd,
+            type: isForgetPage
+          } : {
+            phone,
+            code,
+            paypwd: safePwd,
+            pwd,
+            root_uuid: $('.invitation').val()
+          },
+          onSuc: () => {
+            showMsg(
+              `操作成功${isEdit || apkUrl ? '' : '，去登陆'}！`,
+              isEdit ? 'back' : (apkUrl || 'login.html')
+            )
+          }
+        })
+      })
+    })
+
+    // 获取验证码
+    function getSmsCode(phone) {
+      const countdown = $('.countdown')
+
+      countdown.click(function () {
+        onGet()
+      })
+
+      onGet()
+
+      function onGet() {
+        if (countdown.hasClass('disable')) {
+          return
+        }
+
+        let time = 60
+        let interval
+
+        request({
+          service: 'user/code',
+          args: { phone },
+          isGet: true,
+          onSuc: () => {
+            showMsg('验证码已发送！')
+          }
+        })
+
+        time -= 1
+        countdown.addClass('disable').text(`${time}s后重新获取`)
+
+        interval = setInterval(() => {
+          if (time === 1) {
+            time = 60
+            clearInterval(interval)
+            countdown.text('重新获取').removeClass('disable')
+            return
+          }
+
+          time -= 1
+
+          countdown.text(`${time}s后重新获取`)
+        }, 1000)
+      }
+    }
+
+    // 输入验证码
+    function inputSmsCode(callback) {
+      const smsCodeInput = $('.sms-code-input')
+      const button = $('.step-2 .button')
+      smsCodeInput.focus()
+
+      smsCodeInput.blur(function () {
+        smsCodeInput.focus()
+      })
+
+      $(document).keyup(function () {
+        let i = 0
+        let tmpHtml = ''
+        const tmpCodes = smsCodeInput.val().split('')
+        tmpCodes.forEach(item => {
+          i++
+          tmpHtml += `<div class='code-value'>${item}</div>`
+        })
+        while (i < 6) {
+          tmpHtml += '<div class="code-value"></div>'
+          i++
+        }
+        $('.code-box').html(tmpHtml)
+      })
+
+      button.click(function () {
+        const code = smsCodeInput.val()
+
+        if (!code || code.length < 6) {
+          showMsg('请输入验证码！')
+          return
+        }
+        if (typeof callback === 'function') {
+          callback()
+        }
+
+        smsCodeInput.unbind('blur')
+        $(document).unbind('keyup')
+        button.unbind('click')
+      })
+    }
+  </script>
+</head>
+<body>
+<img src='image/bg-1.jpg' alt='' class='block-img'>
+<div class='register-page'>
+  <div class='step-1'>
+    <div class='title'>注册</div>
+    
+    <div class='input flex-r'>
+      <div class='iconfont icon-shouji c-green'></div>
+      <input type='text' class='flex tel' placeholder='请输入您的手机号'>
+    </div>
+    
+    <div class='input flex-r forget-hide'>
+      <div class='iconfont icon-fenxiang c-green'></div>
+      <input type='text' class='flex invitation' placeholder='请输入邀请码'>
+    </div>
+    
+    <div class='button'>确认无误，下一步</div>
+    
+    <a class='dis-b text-right forget-hide' href='login.html'>已注册，去登陆</a>
+  </div>
+  
+  <div class='step-2 dis-n'>
+    <div class='title'>填写验证码</div>
+    <div>验证码已发送至17700000000</div>
+    <div class='code-box flex-b text-center'>
+      <div class='code-value'></div>
+      <div class='code-value'></div>
+      <div class='code-value'></div>
+      <div class='code-value'></div>
+      <div class='code-value'></div>
+      <div class='code-value'></div>
+    </div>
+    <input type='text' class='sms-code-input pos-f-hide' maxlength='6'>
+    
+    <div class='flex-r f-12'>
+      <div class='flex'>收不到验证码？</div>
+      <div class='countdown'>59s后重新获取</div>
+    </div>
+    
+    <div class='button'>下一步</div>
+    
+    <div class='tip flex-c-c f-12 c-9'>
+      <div class='check checked'></div>
+      验证码已发送，可能会有延迟，请耐心等待
+    </div>
+  </div>
+  
+  <div class='step-3 dis-n'>
+    <div class='title'>设置密码</div>
+    
+    <div class='input flex-r js-login-pwd'>
+      <div class='iconfont icon-mima c-green'></div>
+      <input type='password' class='flex pwd' placeholder='请设置登录密码'>
+    </div>
+    
+    <div class='input flex-r js-pay-pwd'>
+      <div class='iconfont icon-mima c-green'></div>
+      <input type='password' class='flex safe-pwd' placeholder='请设置安全密码'>
+    </div>
+    
+    <div class='button'>确认设置</div>
+    
+    <div class='f-12 c-9'>
+      密码长度8-32位，必须包含数字、字母、符号至少2种或以上元素
+    </div>
+  </div>
+</div>
+
+<div class='copyright'>
+  <span>高山茶园</span>
+</div>
+</body>
+</html>

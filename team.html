@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-我的团队</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/team.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      headerContent('team')
+
+      isLogin(token => {
+        // 数据
+        request({
+          service: 'user/userinfo',
+          args: {
+            canReq: true,
+            token
+          },
+          onSuc: res => {
+            $('.js-info').prepend(`
+              <div class='data-box pos-r flex-b text-center'>
+                <div class='line-horizontal pos-a'></div>
+                <div class='line-vertical pos-a'></div>
+                
+                <div class='data'>
+                  <div class='f-16 bold'>LV${res.level}</div>
+                  <div>我的等级</div>
+                </div>
+                
+                <div class='data'>
+                  <div class='f-16 bold'>${res.TeamInvestmentAmount}</div>
+                  <div>团队总业绩</div>
+                </div>
+                
+                <div class='data'>
+                  <div class='bold'>${res.Directpushnumber}人</div>
+                  <div>我推荐的</div>
+                </div>
+                
+                <div class='data'>
+                  <div class='bold'>${res.Groupnumber}人</div>
+                  <div>团队总人数</div>
+                </div>
+              </div>
+              
+              <a class='button share-btn dis-b' href='share.html'>分享好友</a>
+            `)
+          }
+        })
+
+        // 分页
+        paging({
+          service: 'user/MyTeam',
+          args: { token },
+          onSuc: res => {
+            res.forEach(item => {
+              $('.js-paging').append(`
+              <div class='user box-set c-f'>
+                <div class='flex-r mb-10 f-14'>
+                  ${item.headerurl
+                ? `<div class='user-img flex-c-c'>
+                        <img src='${item.headerurl}' alt='' class='w-100'>
+                      </div>`
+                : ''
+              }
+                  <div class='flex'>
+                    <div>${item.name}</div>
+                    <div>LV${item.level}</div>
+                  </div>
+                </div>
+                
+                <div class='mb-5'>用户ID：${item.uuid}</div>
+                <div>加入时间：${formatTime(item.regist_time, 'nyr')}</div>
+                <div class='mb-5'>Ta的团队：${item.Groupnumber}人</div>
+                <div>总业绩：${item.TeamInvestmentAmount}</div>
+              </div>`)
+            })
+          }
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page team-page'>
+<div class='flex-auto'>
+  <div class='page-content'>
+    <img src='image/team.jpg' alt='' class='block-img'>
+    <div class='p-15 js-info'>
+      <div class='flex-b f-13 js-paging'></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/dataWay.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      headerContent('data')
+
+      isLogin(token => {
+        $('.button').click(function () {
+          let errCount = 0
+          const keyTip = [
+            { key: 'addressRealName', tip: '实名认证的名称' },
+            { key: 'addressPhone', tip: '收件人电话' },
+            { key: 'address', tip: '详细地址信息' }
+          ]
+          const data = {}
+          $('.input input').each(function (index) {
+            const val = $(this).val()
+            const item = keyTip[index]
+            const isTel = index === 1
+
+            if (!(isTel ? TEL_REG.test(val) : val)) {
+              errCount += 1
+              showMsg(isTel ? TEL_ERR : `请输入${item.tip}！`)
+              return false
+            }
+
+            data[item.key] = val
+          })
+
+          if (!errCount) {
+            request({
+              service: 'user/UpdateAddress',
+              args: {
+                ...data,
+                token
+              },
+              onSuc: () => {
+                showMsg('操作成功！', 'back')
+              }
+            })
+          }
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page data-way'>
+<div class='flex-auto'>
+  <div class='top flex-r'>
+    <div class='flex'>
+      <div class='top-title'>收货地址</div>
+      <div>设置地址</div>
+    </div>
+    <img src='image/wallet.png' alt='' class='top-img'>
+  </div>
+  
+  <div class='box-out'>
+    <div class='box'>
+      <div class='box-title'>绑定收货地址</div>
+      
+      <div class='input flex-r'>
+        <div class='label'>您的姓名</div>
+        <input type='text' class='flex' placeholder='输入实名认证的名称'>
+      </div>
+      
+      <div class='input flex-r'>
+        <div class='label'>联系方式</div>
+        <input type='text' class='flex' placeholder='请输入收件人电话'>
+      </div>
+      
+      <div class='input flex-r'>
+        <div class='label'>收货地址</div>
+        <input type='text' class='flex' placeholder='请输入详细地址信息'>
+      </div>
+      
+      <div class='flex-n tip'>
+        <div class='iconfont icon-tishi'></div>
+        <div class='flex'>请输入正确的地址信息</div>
+      </div>
+    </div>
+    
+    <div class='button'>保存信息</div>
+  </div>
+</div>
+</body>
+</html>
