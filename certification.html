@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/dataWay.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/lrz.bundle.js'></script>
+  <script src='js/comOpe.js?id=1'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      const fileSize = []
+      headerContent('data')
+
+      // 图片上传
+      $('.file-btn').change(function () {
+        const btn = $(this)
+        const file = this.files[0]
+
+        if (!btn.val()) {
+          btn.prev().attr('src', '')
+          btn.parent().prev().css('opacity', 1)
+          return
+        }
+
+        fileSize[$('.file-btn').index(btn)] = file.size
+
+        lrz(file, {
+          width: 720
+        })
+        .then(function (rst) {
+          btn.prev().attr('src', rst.base64)
+          btn.parent().prev().css('opacity', 0)
+          return rst
+        })
+      })
+
+      isLogin(token => {
+        // 提交数据
+        $('.button').click(function () {
+          let errCount = 0
+          const keyTip = [
+            { key: 'realName', tip: '真实姓名' },
+            { key: 'cardId', tip: '证件号码' },
+            { key: 'files0', tip: '身份证头像面' },
+            { key: 'files1', tip: '身份证国徽面' }
+          ]
+
+          let url = `?token=${token}`
+          const formData = new FormData()
+          $('input').each(function (index) {
+            const val = $(this).val()
+            const item = keyTip[index]
+
+            if (!val) {
+              errCount += 1
+              showMsg(`请${index > 1 ? '选择' : '输入'}${item.tip}！`)
+              return false
+            }
+
+            if (index > 1) {
+              formData.append(item.key, $(this)[0].files[0])
+            } else {
+              url += `&${item.key}=val`
+            }
+          })
+
+          if (errCount) {
+            return
+          }
+
+          if ((fileSize[0] + fileSize[1]) / 1024 > 100) {
+            showMsg('正反面图片大小不能超过100kb！')
+            return
+          }
+
+          request({
+            service: `user/RealName_Copy${url}`,
+            args: formData,
+            ajaxArgs: {
+              cache: false,
+              processData: false,
+              contentType: false
+            },
+            onSuc: () => {
+              showMsg('操作成功！', 'back')
+            }
+          })
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page data-way'>
+<div class='flex-auto'>
+  <div class='top flex-r'>
+    <div class='flex'>
+      <div class='top-title'>进行实名认证</div>
+      <div>提升账户安全使用更放心</div>
+    </div>
+    <img src='image/wallet.png' alt='' class='top-img'>
+  </div>
+  
+  <div class='box-out'>
+    <div class='box'>
+      <div class='box-title'>填写个人信息</div>
+      
+      <div class='input flex-r'>
+        <div class='label'>您的姓名</div>
+        <input type='text' name='realName' class='flex' placeholder='请输入真实姓名'>
+      </div>
+      
+      <div class='input flex-r'>
+        <div class='label'>证件号码</div>
+        <input type='text' name='cardId' class='flex' placeholder='请输入证件号码'>
+      </div>
+      
+      <div class='box-title box-title-1'>上传证件</div>
+      
+      <div class='flex-b mb-10 text-center'>
+        <div class='id-card'>
+          <img src='image/id-card-1.png' alt='' class='dis-b w-100'>
+          
+          <div class='flex-c-c pos-a pos-full over-hide'>
+            <img src='' alt='' class='block-img'>
+            <input class='file-btn pos-a pos-full' type='file' name='files0'
+                   accept='image/gif,image/jpeg,image/jpg,image/png,image/svg' />
+          </div>
+        </div>
+        <div class='id-card'>
+          <img src='image/id-card-2.png' alt='' class='dis-b w-100'>
+          
+          <div class='flex-c-c pos-a pos-full over-hide'>
+            <img src='' alt='' class='block-img'>
+            <input class='file-btn pos-a pos-full' type='file' name='files1'
+                   accept='image/gif,image/jpeg,image/jpg,image/png,image/svg' />
+          </div>
+        </div>
+      </div>
+      
+      <div class='flex-r text-center'>
+        <div class='flex'>身份证头像面</div>
+        <div class='flex'>身份证国徽面</div>
+      </div>
+      
+      <div class='flex-n tip'>
+        <div class='iconfont icon-tishi'></div>
+        <div class='flex'>证件文字需清洗辨认，证件信息不得有误</div>
+      </div>
+    </div>
+    
+    <div class='button'>保存信息</div>
+  </div>
+</div>
+</body>
+</html>

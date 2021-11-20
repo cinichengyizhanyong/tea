@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/dataWay.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      let bank = {}
+      headerContent('data')
+
+      // 显示银行卡列表
+      $('.js-show-bank').click(function () {
+        $('.bank-bg-mask').show()
+      })
+
+      // 关闭银行卡列表
+      $('.bank-bg-mask').click(function () {
+        $('.bank-bg-mask').hide()
+      })
+
+      isLogin(token => {
+        // 银行卡列表
+        request({
+          service: 'user/AllBanks',
+          args: { token },
+          onSuc: res => {
+            res.forEach((item, index) => {
+              $('.bank-list').append(`<div class='flex-r list' data-index='${index}'>
+                <img src='${item.backicon}' alt=''>
+                <div class='flex text-line1'>${item.backname}</div>
+              </div>`)
+            })
+
+            $('.bank-list .list').click(function () {
+              bank = res[$(this).attr('data-index')]
+              $('.js-bank').val(bank.backname)
+            })
+          }
+        })
+
+        // 提交银行卡信息
+        $('.button').click(function () {
+          let errCount = 0
+          const keyTip = [
+            { key: 'backRealName', tip: '实名认证的名称' },
+            { key: 'backName', tip: '收款银行' },
+            { key: 'backNumber', tip: '银行卡号' }
+          ]
+          const data = {}
+          $('.input input').each(function (index) {
+            const val = $(this).val()
+            const item = keyTip[index]
+
+            if (!val) {
+              errCount += 1
+              showMsg(`请${index === 1 ? '选择' : '输入'}${item.tip}！`)
+              return false
+            }
+
+            data[item.key] = val
+          })
+
+          if (!errCount) {
+            request({
+              service: 'user/BindBankCard',
+              args: {
+                ...data,
+                backIcon: bank.backicon,
+                token
+              },
+              onSuc: () => {
+                showMsg('操作成功！', 'back')
+              }
+            })
+          }
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page data-way'>
+<div class='flex-auto'>
+  <div class='top flex-r'>
+    <div class='flex'>
+      <div class='top-title'>收款方式</div>
+      <div>设置收款方式，收款更便捷</div>
+    </div>
+    <img src='image/wallet.png' alt='' class='top-img'>
+  </div>
+  
+  <div class='box-out'>
+    <div class='box'>
+      <div class='box-title'>绑定收款信息</div>
+      
+      <div class='input flex-r'>
+        <div class='label'>您的姓名</div>
+        <input type='text' class='flex' placeholder='输入实名认证的名称'>
+      </div>
+      
+      <div class='input flex-r js-show-bank'>
+        <div class='label'>收款银行</div>
+        <input type='text' class='flex js-bank' placeholder='请选择收款银行' readonly>
+        <div class='iconfont icon-liebiao cursor-pointer'></div>
+      </div>
+      
+      <div class='input flex-r'>
+        <div class='label'>银行卡号</div>
+        <input type='text' class='flex' placeholder='请输入银行卡号'>
+      </div>
+      
+      <div class='flex-n tip'>
+        <div class='iconfont icon-tishi'></div>
+        <div class='flex'>请输入正确的收款信息，如信息有误导致资产丢失本公司概不负责</div>
+      </div>
+    </div>
+    
+    <div class='button'>保存信息</div>
+  </div>
+</div>
+
+<div class='bg-mask bank-bg-mask'>
+  <div class='bank-list box over-auto'></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1 @@
+@import 'base.css';.share-page .share-friend {    margin: 0 30px;    padding: 30px;    background: url(../image/leaf.png) no-repeat left bottom;    background-size: 100%;}.share-page .box {    margin: 5vh 0;    padding: 20px 40px;    border-radius: 10px;}.share-page #qrcode {    margin: 20px 0;    height: 25.7vh;}

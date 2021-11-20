@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-众筹大厅</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/hall.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      headerContent('hall')
+
+      // 显示预定弹框
+      $('.operation .btn').click(function () {
+        $('.hall-bg-mask').show()
+      })
+
+      // 关闭预定弹框
+      $('.hall-bg-mask').click(function () {
+        $('.hall-bg-mask').hide()
+      })
+
+      isLogin(token => {
+        // 分页
+        const args = {
+          token,
+          type: 1
+        }
+
+        const status = {
+          10: {
+            bg: 'bg-green',
+            btnText: '预约'
+          },
+          20: {
+            bg: 'bg-green',
+            btnText: '进行'
+          },
+          30: {
+            bg: 'bg-green',
+            btnText: '完成'
+          },
+          40: {
+            bg: 'bg-green',
+            btnText: '已分红'
+          },
+          50: {
+            bg: 'bg-green',
+            btnText: '筹集失败'
+          },
+          60: {
+            bg: 'bg-green',
+            btnText: '筹集取消'
+          }
+        }
+
+        const { resetPage } = paging({
+          service: 'crowdfundingareaBefore/CrowdfundingHall',
+          args,
+          onSuc: res => {
+            res.forEach(item => {
+              $('.js-paging').append(`<div class='hall pos-r'>
+                <div class='triangle triangle-top'></div>
+                <div class='triangle triangle-bottom'></div>
+                
+                <div class='flex-r pos-r f-16'>
+                  <div class='dot bg-green'></div>
+                  <div class='flex'>预约中</div>
+                  <div>一号茶园（5期）</div>
+                </div>
+                
+                <div class='flex-r operation'>
+                  <div class='flex'>
+                    <div class='f-16 bold'>1000.00</div>
+                    <div>筹集金额</div>
+                  </div>
+                  <div class='btn bg-green'>预约</div>
+                </div>
+                
+                <div class='book-ing mb-15 text-center bg-green c-f'>
+                  <span class='f-20 vertical-align-t bold'>
+                    剩余：
+                  </span>
+                  00:00:59
+                </div>
+                
+                <div class='flex-c-c'>
+                  已参与人数：
+                  <div class='f-16 bold'>99</div>
+                  人
+                </div>
+                
+                <div class='status'>
+                  <div class='flex-r pos-r'>
+                    <div class='dot bg-red'></div>
+                    <div class='flex'>已完成</div>
+                    <div>一号茶园(04期)</div>
+                  </div>
+                  <div class='mb-5'>筹集金额：1000.00</div>
+                  
+                  <div class='flex-r pos-r'>
+                    <div class='dot bg-red'></div>
+                    <div class='flex'>已完成</div>
+                    <div>一号茶园(04期)</div>
+                  </div>
+                  <div class='mb-5'>筹集金额：1000.00</div>
+                </div>
+              </div>`)
+            })
+          }
+        })
+
+        // 导航切换
+        changeNav(type => {
+          args.type = type
+          $('.js-paging').html('')
+          resetPage()
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page hall-page'>
+<div class='flex-auto'>
+  <div class='page-content'>
+    <div class='pos-r'>
+      <img src='image/bg-1.jpg' alt='' class='block-img'>
+      <div class='pos-a'>筹集茶园，获取利润。</div>
+    </div>
+    
+    <div class='hall-box'>
+      <div class='nav-bar flex-r mb-20'>
+        <div class='flex nav-selected' data-type='1'>进行中</div>
+        <div class='flex' data-type='0'>全部</div>
+      </div>
+      
+      <div class='js-paging over-hide'></div>
+      
+      <div class='dis-n'>
+        <div class='hall pos-r'>
+          <div class='triangle triangle-top'></div>
+          <div class='triangle triangle-bottom'></div>
+          
+          <div class='flex-r pos-r f-16'>
+            <div class='dot bg-green'></div>
+            <div class='flex'>预约中</div>
+            <div>一号茶园（5期）</div>
+          </div>
+          
+          <div class='flex-r operation'>
+            <div class='flex'>
+              <div class='f-16 bold'>1000.00</div>
+              <div>筹集金额</div>
+            </div>
+            <div class='btn bg-green'>预约</div>
+          </div>
+          
+          <div class='book-ing mb-15 text-center bg-green c-f'>
+            <span class='f-20 vertical-align-t bold'>
+              剩余：
+            </span>
+            00:00:59
+          </div>
+          
+          <div class='flex-c-c'>
+            已参与人数：
+            <div class='f-16 bold'>99</div>
+            人
+          </div>
+          
+          <div class='status'>
+            <div class='flex-r pos-r'>
+              <div class='dot bg-red'></div>
+              <div class='flex'>已完成</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+            
+            <div class='flex-r pos-r'>
+              <div class='dot bg-red'></div>
+              <div class='flex'>已完成</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+          </div>
+        </div>
+        
+        <div class='hall pos-r'>
+          <div class='triangle triangle-orange triangle-top'></div>
+          <div class='triangle triangle-orange triangle-bottom'></div>
+          
+          <div class='flex-r pos-r f-16'>
+            <div class='dot bg-orange'></div>
+            <div class='flex'>预约中</div>
+            <div>一号茶园（5期）</div>
+          </div>
+          
+          <div class='flex-r operation'>
+            <div class='flex'>
+              <div class='f-16 bold'>1000.00</div>
+              <div>筹集金额</div>
+            </div>
+            <div class='btn bg-orange'>参与</div>
+          </div>
+          
+          <div>已完成筹集: 886</div>
+          <div class='progress-box flex-r mb-15'>
+            <div class='flex progress-border'>
+              <div class='progress bg-orange' style='width: 80%;'></div>
+            </div>
+            80%
+          </div>
+          
+          <div class='flex-c-c'>
+            已参与人数：
+            <div class='f-16 bold'>99</div>
+            人
+          </div>
+          
+          <div class='status'>
+            <div class='flex-r pos-r'>
+              <div class='dot bg-red'></div>
+              <div class='flex'>已完成</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+            
+            <div class='flex-r pos-r'>
+              <div class='dot bg-red'></div>
+              <div class='flex'>已完成</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+          </div>
+        </div>
+        
+        <div class='hall pos-r'>
+          <div class='triangle triangle-grey triangle-top'></div>
+          <div class='triangle triangle-grey triangle-bottom'></div>
+          
+          <div class='flex-r pos-r f-16'>
+            <div class='dot bg-grey'></div>
+            <div class='flex'>预约中</div>
+            <div>一号茶园（5期）</div>
+          </div>
+          
+          <div class='flex-r operation'>
+            <div class='flex'>
+              <div class='f-16 bold'>1000.00</div>
+              <div>筹集金额</div>
+            </div>
+            <div class='btn bg-grey'>失败</div>
+          </div>
+          
+          <div>已完成筹集: 886</div>
+          <div class='progress-box flex-r mb-15'>
+            <div class='flex progress-border'>
+              <div class='progress bg-grey' style='width: 80%;'></div>
+            </div>
+            80%
+          </div>
+          
+          <div class='flex-c-c'>
+            已参与人数：
+            <div class='f-16 bold'>99</div>
+            人
+          </div>
+          
+          <div class='status'>
+            <div class='flex-r pos-r'>
+              <div class='dot bg-grey'></div>
+              <div class='flex'>已取消</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+            
+            <div class='flex-r pos-r'>
+              <div class='dot bg-grey'></div>
+              <div class='flex'>已取消</div>
+              <div>一号茶园(04期)</div>
+            </div>
+            <div class='mb-5'>筹集金额：1000.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class='bg-mask hall-bg-mask'>
+  <div class='operation-pop bg-f'>
+    <div class='operation-title f-16 text-center bold c-f bg-green'>
+      立即预约
+    </div>
+    
+    <div class='hall'>
+      <div class='flex-r pos-r f-16'>
+        <div class='dot bg-green'></div>
+        <div class='flex'>预约中</div>
+        <div class='flex'>一号茶园（5期）</div>
+      </div>
+      
+      <div class='flex-r mb-15'>
+        <div class='flex'>筹集金额</div>
+        <div class='flex f-16 bold'>1000.00</div>
+      </div>
+      
+      <div class='book-ing mb-15 text-center bg-green c-f'>
+          <span class='f-20 vertical-align-t bold'>
+            剩余：
+          </span>
+        00:00:59
+      </div>
+      
+      <div class='flex-c-c'>
+        已参与人数：
+        <div class='f-16 bold'>99</div>
+        人
+      </div>
+      
+      <div class='integral flex-r'>
+        <div class='flex'>购买1- 20积分</div>
+        <div class='integral-color'>最大</div>
+      </div>
+      
+      <div class='flex-r f-12'>
+        <div class='flex'>需要门票：12</div>
+        <div>可用积分：1234.11</div>
+      </div>
+      
+      <div class='button operation-button'>立即预约</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

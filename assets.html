@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang='en'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport'
+        content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0'>
+  <meta http-equiv='X-UA-Compatible' content='ie=edge'>
+  <title>茶叶众筹-我的资产</title>
+  <link type='text/css' rel='stylesheet' href='//at.alicdn.com/t/font_2919408_qtmyhpeeauq.css'>
+  <link type='text/css' rel='stylesheet' href='css/assets.css'>
+  <script src='js/jquery-3.6.0.min.js'></script>
+  <script src='js/comOpe.js'></script>
+  <script src='js/header.js'></script>
+  <script>
+    $(function () {
+      let myMoney = 0
+      let myTicket = 0
+      headerContent('assets')
+
+      // 转账界面阻止冒泡
+      $('.transfer-accounts').click(function (e) {
+        e.stopPropagation()
+      })
+
+      // 导航切换
+      changeNav(type => {
+        $('.js-nav-can-use').text(`可用：${type === '1' ? myMoney : myTicket}`)
+      })
+
+      // 复制
+      $('.icon-fuzhi').click(onCopy)
+
+      isLogin(token => {
+        // 我的资产
+        request({
+          service: 'user/Myassets',
+          args: { token },
+          onSuc: res => {
+            const isGet = res.ticketime > 0
+            myMoney = res.money
+            myTicket = res.admissionticket
+            $('.js-can-use').text(`可用：${myMoney}`)
+
+            $('.assets-page').append(`
+              <a
+               class='assets assets-bg-1 dis-b mb-20'
+               href='assetsLog.html?type=1'
+              >
+                <div class='mb-15'>积分</div>
+                <div class='flex-r'>
+                  <div class='flex'>
+                    <div class='mb-5 js-money'>可用：${myMoney}</div>
+                    <div>冻结：${res.fmoney}</div>
+                  </div>
+                  <div class='btn btn-bg-3 js-transfer-accounts-2'>提现</div>
+                </div>
+              </a>
+              
+              <a
+               class='assets assets-bg-1 dis-b mb-5'
+               href='assetsLog.html?type=2'
+              >
+                <div class='mb-15'>门票</div>
+                <div class='flex-r'>
+                  <div class='flex js-ticket'>
+                    可用：${myTicket}
+                  </div>
+                  <div class='flex'>
+                    冻结：${res.fadmissionticket}
+                  </div>
+                </div>
+              </a>
+              
+              <div class='flex-b text-center'>
+                <div class='assets assets-bg-2'>
+                  <div>积分/门票</div>
+                  <div class='btn btn-bg-2 js-transfer-accounts-1'>转账</div>
+                </div>
+                
+                <div class='assets assets-bg-3 flex'>
+                  <div class='f-16'>
+                    ${isGet ? `补助金：${res.admissionticketmoney}` : '您有未领取的补助金'}
+                  </div>
+                  <div class='btn btn-bg-${isGet ? 1 : '3 js-receive'}'>
+                    ${isGet ? '已领取' : '立即领取'}
+                  </div>
+                </div>
+              </div>
+            `)
+
+            // 显示转账
+            $('.js-transfer-accounts-1').click(function () {
+              $('.assets-bg-mask, .transfer-accounts-1').show()
+            })
+
+            // 显示提现
+            $('.js-transfer-accounts-2').click(function (e) {
+              e.preventDefault()
+              e.stopPropagation()
+              $('.assets-bg-mask, .transfer-accounts-2').show()
+            })
+
+            // 关闭转账、提现
+            $('.assets-bg-mask').click(function () {
+              $('.assets-bg-mask, .transfer-accounts').hide()
+            })
+
+            // 领取门票
+            $('.js-receive').click(function () {
+              request({
+                service: 'crowdfundingareaBefore/Collecttickets',
+                args: { token },
+                onSuc: res => {
+                  $(this).removeClass('btn-bg-3 js-receive').addClass('btn btn-bg-1').text('已领取')
+                  $(this).prev().text(`补助金：${res.aa1}`)
+                }
+              })
+            })
+          }
+        })
+
+        // 我的个人信息
+        request({
+          service: 'user/userinfo',
+          args: { token, canReq: true },
+          onSuc: res => {
+            const { uuid } = res
+            $('.pos-f-hide').val(uuid)
+            $('.js-my-id').text(`我的ID：${uuid}`)
+            $('.js-back-number').text(`到账卡号：${res.backNumber}`)
+          }
+        })
+
+        // 转账
+        $('.transfer-accounts-1 .button').click(function () {
+          let errCount = 0
+          const keyTip = [
+            { key: 'otheruuid', tip: '接收方ID' },
+            { key: 'num', tip: '转出数量' },
+            { key: 'paypwd', tip: '支付密码' }
+          ]
+          const data = {}
+          const type = $('.nav-bar .nav-selected').attr('data-type')
+          $('.transfer-accounts-1 .input').each(function (index) {
+            const val = $(this).val()
+            const item = keyTip[index]
+
+            if (!val) {
+              errCount += 1
+              showMsg(`请输入${item.tip}！`)
+              return false
+            }
+
+            data[item.key] = val
+          })
+
+          if (!errCount) {
+            request({
+              service: 'wallet/transferAccounts',
+              args: {
+                ...data,
+                type,
+                token
+              },
+              onSuc: () => {
+                showMsg('操作成功！', function () {
+                  if (type === '1') {
+                    myMoney -= data.num
+                    $('.js-money, .js-can-use').text(`可用：${myMoney}`)
+                  } else {
+                    myTicket -= data.num
+                    $('.js-ticket, .js-nav-can-use').text(`可用：${myTicket}`)
+                  }
+                  $('.assets-bg-mask, .transfer-accounts').hide()
+                })
+              }
+            })
+          }
+        })
+
+        // 提现
+        $('.transfer-accounts-2 .button').click(function () {
+          let errCount = 0
+          const keyTip = [
+            { key: 'money', tip: '提现数量' },
+            { key: 'paypwd', tip: '支付密码' }
+          ]
+          const data = {}
+          $('.transfer-accounts-2 .input').each(function (index) {
+            const val = $(this).val()
+            const item = keyTip[index]
+
+            if (!val) {
+              errCount += 1
+              showMsg(`请输入${item.tip}！`)
+              return false
+            }
+
+            data[item.key] = val
+          })
+
+          if (!errCount) {
+            request({
+              service: 'wallet/IntegralWithdrawal',
+              args: {
+                ...data,
+                type: 1,
+                token
+              },
+              onSuc: () => {
+                showMsg('操作成功！', function () {
+                  myMoney -= data.money
+                  $('.js-money, .js-can-use').text(`可用：${myMoney}`)
+                  $('.assets-bg-mask, .transfer-accounts').hide()
+                })
+              }
+            })
+          }
+        })
+      })
+    })
+  </script>
+</head>
+<body class='page'>
+<input id='copy' class='pos-f-hide' type='text'>
+<div class='flex-auto'>
+  <img src='image/assets.png' alt='' class='block-img'>
+  
+  <div class='assets-page c-f'>
+    <div class='f-15'>我的资产</div>
+  </div>
+  
+  <img src='image/index-4.png' alt='' class='block-img'>
+</div>
+
+<div class='bg-mask assets-bg-mask'>
+  <div class='transfer-accounts transfer-accounts-1 c-f dis-n'>
+    <div class='title f-16'>转账给好友</div>
+    
+    <div class='box'>
+      <div class='nav-bar flex-r mb-20'>
+        <div class='flex nav-selected' data-type='1'>积分</div>
+        <div class='flex' data-type='2'>门票</div>
+      </div>
+      
+      <div class='f-16 bold'>转账给：</div>
+      <input type='text' class='input box-set w-100' placeholder='请输入接收方ID'>
+      <div class='flex-r mb-15 f-12 c-9'>
+        <div class='flex mr-5 text-right js-my-id'></div>
+        <div class='iconfont icon-fuzhi f-18'></div>
+      </div>
+      
+      <div class='f-16 bold'>转账数量：</div>
+      <input type='text' class='input box-set w-100' placeholder='请输入转出数量'>
+      <div class='f-12 c-9 text-right js-can-use js-nav-can-use'></div>
+      
+      <div class='f-16 bold'>支付密码：</div>
+      <input type='password' class='input box-set w-100' placeholder='请输入支付密码'>
+      
+      <div class='button'>立即转出</div>
+    </div>
+  </div>
+  
+  <div class='transfer-accounts transfer-accounts-2 c-f dis-n'>
+    <div class='title f-16'>积分提现</div>
+    
+    <div class='box'>
+      <div class='f-16 text-center bold'>1积分=人民币</div>
+      <div class='mb-20 f-12 c-9 text-center'>实时积分价格</div>
+      
+      <div class='f-16 bold'>提现数量：</div>
+      <input type='text' class='input box-set w-100' placeholder='请输入提现数量'>
+      <div class='mb-20 f-12 c-9 text-right js-can-use'></div>
+      
+      <div class='f-16 bold'>支付密码：</div>
+      <input type='password' class='input box-set w-100' placeholder='请输入支付密码'>
+      
+      <div class='text-center js-back-number'></div>
+      
+      <div class='button'>立即提现</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
